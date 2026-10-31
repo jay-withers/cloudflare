@@ -4,9 +4,7 @@ Terraform for the DNS records in the `jaywithers.uk` Cloudflare zone: every
 app's custom-domain CNAME and `asuid` TXT, and every Resend sending domain's
 records. Until this repo existed they were all made by hand in the dashboard.
 
-Records only. The zone's own settings, the gym-log Cloudflare Tunnel and its
-Access application stay manual, and so does any CNAME the tunnel writes for
-its own public hostnames.
+Records only. The zone's own settings stay manual in the dashboard.
 
 ## Adding a record
 

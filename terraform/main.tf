@@ -1,6 +1,6 @@
-# Every DNS record in the zone that isn't Cloudflare's own to write. The
-# tunnel's public hostnames, once gym-log moves home, write their CNAMEs
-# themselves: leave those out of here, or the two will fight over them.
+# Every DNS record in the zone. Anything Cloudflare writes for itself (a
+# tunnel's public hostname, say) must stay out of here, or the two will fight
+# over it.
 #
 # Names are written in full (Cloudflare reports them that way, so a relative
 # name would plan a change every time) and TXT values get the quotes
