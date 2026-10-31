@@ -1,5 +1,8 @@
 name: ci-terraform
 
+# Terraform CI. `validate` (and the mocked-provider tests) come from the shared
+# terraform.yml; `plan` from the shared terraform-deploy.yml, which comments
+# the plan on the PR. Only `dev` exists: there is one zone.
 on:
   pull_request:
     branches: [main]
@@ -8,22 +11,47 @@ permissions:
   contents: read
 
 jobs:
-  # Credential-free validation via the shared workflow: the module and its
-  # example both init and validate, and the module's terraform tests run with a
-  # mocked azurerm provider, so this is green on a fresh template with no Azure
-  # auth configured. The path filter and the always-reporting gate job both
-  # live in there — mark "terraform / Terraform" as the required check in the
-  # ruleset, not the bare job id.
-  #
-  # There is no plan job: the template ships no credentials, and a plan of the
-  # example would need a real subscription. Downstream repos plan by hand.
+  # Credential-free init and validate. pull-requests: read is
+  # what the shared workflow's own path filter needs.
   terraform:
     permissions:
       contents: read
       pull-requests: read
-    # TODO: re-pin to the released tag's SHA once jay-withers/workflows has cut
-    # a release containing the validate-only terraform.yml.
-    uses: jay-withers/workflows/.github/workflows/terraform.yml@ad07194424d08c4f56947d5e410dbfabb130d3a1 # v1.14.6
+    uses: jay-withers/workflows/.github/workflows/terraform.yml@fbb174888805c24e0f0846cf4b58b5ecd90f6fa6 # v1.21.0
+
+  # Plans dev against the live zone, through the same shared workflow and
+  # environment cd-terraform applies with. Two credentials, both from the
+  # `dev` GitHub environment: Azure OIDC for the state backend only (the
+  # identity is state-only, see github-repos' state_consumers), and the
+  # CLOUDFLARE_API_TOKEN secret for the provider. `secrets: inherit` is what
+  # lets the called job see that secret; without it the provider runs with no
+  # token and the plan fails.
+  plan:
+    needs: terraform
+    if: needs.terraform.outputs.changed == 'true'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write # the plan comment
+    uses: jay-withers/workflows/.github/workflows/terraform-deploy.yml@fbb174888805c24e0f0846cf4b58b5ecd90f6fa6 # v1.21.0
+    secrets: inherit
     with:
-      directories: '["terraform", "terraform/examples/basic"]'
-      test-directories: '["terraform"]'
+      environment: dev
+
+  # Required status check for the plan job: the shared workflow's own gate
+  # ("terraform / Terraform") covers only what runs inside it. Skipped counts
+  # as success, so a pull request touching no Terraform passes.
+  terraform-plan:
+    needs: plan
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Verify the plan job
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+        run: |
+          echo "plan=$PLAN_RESULT"
+          if [ "$PLAN_RESULT" = "failure" ]; then
+            echo "::error::The Terraform plan failed."
+            exit 1
+          fi

@@ -1,10 +1,9 @@
 TF_DIR := terraform
-EXAMPLE_DIR := $(TF_DIR)/examples/basic
 ENV ?= dev
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install lint init fmt validate plan test
+.PHONY: help install lint init fmt validate plan inventory
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -17,18 +16,22 @@ install: ## Install pre-commit hooks (run once after cloning)
 lint: ## Run all pre-commit hooks against every file
 	pre-commit run --all-files
 
-init: ## terraform init
-	terraform -chdir=$(TF_DIR) init
+init: ## terraform init against ENV's backend (needs az login)
+	terraform -chdir=$(TF_DIR) init -reconfigure -backend-config=backends/$(ENV).hcl
 
 fmt: ## terraform fmt -recursive
 	terraform -chdir=$(TF_DIR) fmt -recursive
 
-validate: init ## terraform init + validate
+validate: ## terraform init (no backend) + validate
+	terraform -chdir=$(TF_DIR) init -backend=false -input=false
 	terraform -chdir=$(TF_DIR) validate
 
-plan: ## terraform init + plan against the basic example (set ENV=dev|stg|prd, default dev)
-	terraform -chdir=$(EXAMPLE_DIR) init
-	terraform -chdir=$(EXAMPLE_DIR) plan -var-file=../../environments/$(ENV).tfvars
+# The token comes from .env; it is exported for terraform only, never echoed.
+plan: init ## terraform plan (ENV=dev; CLOUDFLARE_API_TOKEN from .env)
+	@set -a; [ -f .env ] && . ./.env; set +a; \
+		terraform -chdir=$(TF_DIR) plan -var-file=environments/$(ENV).tfvars
 
-test: init ## terraform test (mocked azurerm provider — no Azure auth)
-	terraform -chdir=$(TF_DIR) test
+# There is no apply target: cd-terraform applies, from the Actions tab.
+
+inventory: ## List every record in the zone as Cloudflare has it (CLOUDFLARE_API_TOKEN from .env)
+	@scripts/inventory.sh
