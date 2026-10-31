@@ -11,13 +11,15 @@ permissions:
   contents: read
 
 jobs:
-  # Credential-free init and validate. pull-requests: read is
-  # what the shared workflow's own path filter needs.
+  # Credential-free init, validate and terraform test (mocked provider).
+  # pull-requests: read is what the shared workflow's own path filter needs.
   terraform:
     permissions:
       contents: read
       pull-requests: read
     uses: jay-withers/workflows/.github/workflows/terraform.yml@fbb174888805c24e0f0846cf4b58b5ecd90f6fa6 # v1.21.0
+    with:
+      test-directories: '["terraform"]'
 
   # Plans dev against the live zone, through the same shared workflow and
   # environment cd-terraform applies with. Two credentials, both from the

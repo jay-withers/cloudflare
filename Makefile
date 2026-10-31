@@ -3,7 +3,7 @@ ENV ?= dev
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install lint init fmt validate plan inventory
+.PHONY: help install lint init fmt validate test plan inventory
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -25,6 +25,10 @@ fmt: ## terraform fmt -recursive
 validate: ## terraform init (no backend) + validate
 	terraform -chdir=$(TF_DIR) init -backend=false -input=false
 	terraform -chdir=$(TF_DIR) validate
+
+test: ## terraform test (mocked provider, no credentials)
+	terraform -chdir=$(TF_DIR) init -backend=false -input=false
+	terraform -chdir=$(TF_DIR) test
 
 # The token comes from .env; it is exported for terraform only, never echoed.
 plan: init ## terraform plan (ENV=dev; CLOUDFLARE_API_TOKEN from .env)

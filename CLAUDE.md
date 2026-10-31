@@ -32,8 +32,13 @@ Azure module, its example and its stg/prd environments are gone, and
 - The verification ID and default domain of `cae-platform-dev` are literals
   in `dev.tfvars`, not looked up: this repo's identity can reach its own
   state container and nothing else in Azure.
-- `imports.tf` adopted the hand-made records. Delete it once applied, along
-  with any later one used to adopt a record made in the dashboard.
+- To adopt a record made in the dashboard, add it to `dev.tfvars` and an
+  `import` block in `imports.tf` (`make inventory` gives its ID; the id is
+  `<zone id>/<record id>`), then delete the block once applied. While one is
+  there, `terraform test` fails: the import targets a key the tests'
+  variables don't produce.
+- `terraform/tests/records.tftest.hcl` checks how the three inputs expand,
+  against a mocked provider (`make test`, and the `terraform / Test` job).
 - **File layout is enforced** by `scripts/check-tf-standards.sh`:
   `locals`/`variable`/`output`/`data` blocks in `locals.tf`/`variables.tf`/
   `outputs.tf`/`data.tf` (or `<kind>.<topic>.tf`), `terraform{}`/`provider{}`
@@ -59,6 +64,7 @@ Azure module, its example and its stg/prd environments are gone, and
 make install           # install pre-commit hooks (run once after cloning)
 make lint              # run all pre-commit hooks against every file
 make validate          # terraform init (no backend) + validate
+make test              # terraform test (mocked provider, no credentials)
 make plan              # plan dev (az login, token from .env)
 make inventory         # every record in the zone with its ID (token from .env)
 ```
@@ -83,7 +89,8 @@ delivery) or `schedule-`. Every Terraform one calls a shared workflow in
 environment's included, and the provider has no token.
 
 - **ci-pre-commit**: `pre-commit / Pre-commit`, all hooks.
-- **ci-terraform**: `terraform / Terraform` (credential-free validate), then a
+- **ci-terraform**: `terraform / Terraform` (credential-free validate and
+  tests), then a
   real plan of dev commented on the PR, behind the always-reporting
   `terraform-plan` gate.
 - **cd-terraform**: plans dev on merges touching Terraform and opens a
