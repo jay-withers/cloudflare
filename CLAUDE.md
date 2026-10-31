@@ -5,9 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this repo does
 
 Terraform for the DNS records in the `jaywithers.uk` Cloudflare zone, through
-the `cloudflare/cloudflare` provider (v5). Records only: zone settings, the
-gym-log Cloudflare Tunnel and its Access application stay manual in the
-dashboard. Made from `template-repo-terraform-root`; the template's reusable
+the `cloudflare/cloudflare` provider (v5). Records only: zone settings stay
+manual in the dashboard. Made from `template-repo-terraform-root`; the template's reusable
 Azure module, its example and its stg/prd environments are gone, and
 `terraform/` is a single root configuration with one environment, `dev`.
 
@@ -25,10 +24,9 @@ Azure module, its example and its stg/prd environments are gone, and
 - **Names are written in full and TXT values quoted** in `main.tf`, because
   that's how Cloudflare stores them. A relative name or a bare TXT value
   plans a change on every run.
-- **Leave out the tunnel's own CNAMEs.** When gym-log's home deploy moves
-  `health` onto the tunnel, the tunnel writes that record itself, so remove
-  `health` from `app_domains` in the same change, or Terraform and the
-  dashboard will fight over it.
+- **Anything else that writes records in this zone will fight Terraform.**
+  A Cloudflare Tunnel's public hostname, for one, creates its own CNAME. If
+  something like that is ever added, leave its record out of here.
 - The verification ID and default domain of `cae-platform-dev` are literals
   in `dev.tfvars`, not looked up: this repo's identity can reach its own
   state container and nothing else in Azure.
