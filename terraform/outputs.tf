@@ -1,30 +1,13 @@
-# outputs.tf — values exported by this module.
-
-output "environment" {
-  description = "The deployment environment passed to the module."
-  value       = var.environment
+output "zone_id" {
+  description = "The zone's ID, for an `import` block's `<zone id>/<record id>`."
+  value       = data.cloudflare_zone.this.zone_id
 }
 
-output "resource_group_id" {
-  description = "ID of the created resource group."
-  value       = azurerm_resource_group.this.id
+output "records" {
+  description = "Every managed record's name, type and content, keyed as in local.records."
+  value = { for k, r in cloudflare_dns_record.this : k => {
+    name    = r.name
+    type    = r.type
+    content = r.content
+  } }
 }
-
-output "resource_group_name" {
-  description = "Name of the created resource group."
-  value       = azurerm_resource_group.this.name
-}
-
-output "resource_group_location" {
-  description = "Location of the created resource group."
-  value       = azurerm_resource_group.this.location
-}
-
-# Add further module outputs below.
-#
-# Example:
-#
-# output "id" {
-#   description = "Identifier of the created resource."
-#   value       = resource_type.this.id
-# }

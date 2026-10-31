@@ -32,3 +32,6 @@ override.tf.json
 # macOS finder metadata
 .DS_Store
 **/.DS_Store
+
+# Local secrets (CLOUDFLARE_API_TOKEN), copied from .env.example. Never commit.
+.env

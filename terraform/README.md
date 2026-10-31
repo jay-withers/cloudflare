@@ -1,46 +1,51 @@
-# Terraform module
+# terraform
+
+The root configuration: one `cloudflare_dns_record` per entry in
+`local.records`, built from `app_domains`, `resend_domains` and `records` in
+`environments/dev.tfvars`. State is in the shared `sttfsharedjw` account, in
+the `cloudflare` container (`backends/dev.hcl`). See the repo README for how
+to add a record.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
 | ---- | ------- |
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.6 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | ~> 4.0 |
-| <a name="requirement_random"></a> [random](#requirement\_random) | >= 3.3.2 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.7 |
+| <a name="requirement_cloudflare"></a> [cloudflare](#requirement\_cloudflare) | ~> 5.28 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | ~> 4.0 |
+| <a name="provider_cloudflare"></a> [cloudflare](#provider\_cloudflare) | ~> 5.28 |
 
 ## Modules
 
-| Name | Source | Version |
-| ---- | ------ | ------- |
-| <a name="module_naming"></a> [naming](#module\_naming) | Azure/naming/azurerm | ~> 0.4 |
+No modules.
 
 ## Resources
 
 | Name | Type |
 | ---- | ---- |
-| [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
+| [cloudflare_dns_record.this](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/resources/dns_record) | resource |
+| [cloudflare_zone.this](https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs/data-sources/zone) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_environment"></a> [environment](#input\_environment) | Deployment environment. Drives environment-specific behaviour (naming, sizing, etc.) as the module grows. | `string` | n/a | yes |
-| <a name="input_location"></a> [location](#input\_location) | Azure region the resource group is created in. | `string` | `"westeurope"` | no |
-| <a name="input_tags"></a> [tags](#input\_tags) | Tags applied to all resources created by this module, merged with (and taking precedence over) the module's default tags (`environment`, `managed-by`). | `map(string)` | `{}` | no |
+| <a name="input_app_domains"></a> [app\_domains](#input\_app\_domains) | Custom domains for apps on the shared Container Apps environment, as<br/>subdomain => container app name. Each one gets a CNAME to the app and an<br/>asuid TXT record for Azure's ownership check, both DNS only: the managed<br/>certificate is validated against the CNAME, so proxying it fails<br/>validation. | `map(string)` | `{}` | no |
+| <a name="input_container_apps_default_domain"></a> [container\_apps\_default\_domain](#input\_container\_apps\_default\_domain) | The shared Container Apps environment's default domain (cae-platform-dev). Every app domain's CNAME points at `<container app>.<this>`. | `string` | n/a | yes |
+| <a name="input_custom_domain_verification_id"></a> [custom\_domain\_verification\_id](#input\_custom\_domain\_verification\_id) | The shared Container Apps environment's custom domain verification ID. It is the same for every app on the environment, and goes in each app domain's asuid TXT record. | `string` | n/a | yes |
+| <a name="input_records"></a> [records](#input\_records) | Any other record, keyed by `<TYPE> <name>` to match the generated ones.<br/>`name` is relative to the zone (`@` for the apex). A TXT `content` is<br/>written without its quotes. `ttl` 1 means Cloudflare's automatic TTL. | <pre>map(object({<br/>    type     = string<br/>    name     = string<br/>    content  = string<br/>    ttl      = optional(number, 1)<br/>    proxied  = optional(bool, false)<br/>    priority = optional(number)<br/>    comment  = optional(string)<br/>  }))</pre> | `{}` | no |
+| <a name="input_resend_domains"></a> [resend\_domains](#input\_resend\_domains) | Resend sending domains, keyed by subdomain (`@` for the zone apex). Each<br/>one gets Resend's three records: the DKIM TXT at `resend._domainkey`, and<br/>CNAMEs at `send` and `rsend` for its MAIL FROM and return path. `dkim` is<br/>the TXT value without its quotes. `return_path` is the `rsend` target,<br/>which depends on the region the domain was added in. | <pre>map(object({<br/>    dkim        = string<br/>    return_path = optional(string, "rsend-euw1.forge.rmta.net")<br/>  }))</pre> | `{}` | no |
+| <a name="input_zone_name"></a> [zone\_name](#input\_zone\_name) | The Cloudflare zone every record below is in. | `string` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_environment"></a> [environment](#output\_environment) | The deployment environment passed to the module. |
-| <a name="output_resource_group_id"></a> [resource\_group\_id](#output\_resource\_group\_id) | ID of the created resource group. |
-| <a name="output_resource_group_location"></a> [resource\_group\_location](#output\_resource\_group\_location) | Location of the created resource group. |
-| <a name="output_resource_group_name"></a> [resource\_group\_name](#output\_resource\_group\_name) | Name of the created resource group. |
+| <a name="output_records"></a> [records](#output\_records) | Every managed record's name, type and content, keyed as in local.records. |
+| <a name="output_zone_id"></a> [zone\_id](#output\_zone\_id) | The zone's ID, for an `import` block's `<zone id>/<record id>`. |
 <!-- END_TF_DOCS -->
