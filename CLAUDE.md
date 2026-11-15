@@ -4,9 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo does
 
-Terraform for the DNS records in the `jaywithers.uk` Cloudflare zone, through
-the `cloudflare/cloudflare` provider (v5). Records only: zone settings stay
-manual in the dashboard. Made from `template-repo-terraform-root`; the template's reusable
+Terraform for the DNS records in the `jaywithers.uk` Cloudflare zone, and the
+R2 bucket that holds the apps' off-Azure backups, through the
+`cloudflare/cloudflare` provider (v5). Zone settings stay manual in the
+dashboard. Made from `template-repo-terraform-root`; the template's reusable
 Azure module, its example and its stg/prd environments are gone, and
 `terraform/` is a single root configuration with one environment, `dev`.
 
@@ -35,8 +36,17 @@ Azure module, its example and its stg/prd environments are gone, and
   `<zone id>/<record id>`), then delete the block once applied. While one is
   there, `terraform test` fails: the import targets a key the tests'
   variables don't produce.
+- **The backup bucket** (`main.r2.tf`) is in the `eu` jurisdiction, which
+  can't change once it exists, on the account read off the zone
+  (`local.account_id`), so there is no account ID literal. Its lifecycle
+  rules are the only retention: `daily/` 30 days, `monthly/` 365. The apps
+  write to it with their own bucket-scoped R2 credentials, not this repo's
+  token. The bucket has `prevent_destroy`, so renaming it or changing its
+  jurisdiction fails the plan. Moving it means a new bucket, copying the
+  objects across, and removing the old one from state by hand.
 - `terraform/tests/records.tftest.hcl` checks how the three inputs expand,
-  against a mocked provider (`make test`, and the `terraform / Test` job).
+  and `r2.tftest.hcl` the bucket's jurisdiction and retention, against a
+  mocked provider (`make test`, and the `terraform / Test` job).
 - **File layout is enforced** by `scripts/check-tf-standards.sh`:
   `locals`/`variable`/`output`/`data` blocks in `locals.tf`/`variables.tf`/
   `outputs.tf`/`data.tf` (or `<kind>.<topic>.tf`), `terraform{}`/`provider{}`
@@ -49,7 +59,8 @@ Azure module, its example and its stg/prd environments are gone, and
   github-repos creates the container and a state-only identity federated to
   this repo's `dev` environment. Locally, `az login`.
 - **Cloudflare:** `CLOUDFLARE_API_TOKEN`, a token with Zone·DNS·Edit and
-  Zone·Zone·Read on `jaywithers.uk` only. Locally from the gitignored `.env`
+  Zone·Zone·Read on `jaywithers.uk`, plus Account·Workers R2 Storage·Edit on
+  the account for the backup bucket. Locally from the gitignored `.env`
   (copied from `.env.example`); in CI from the secret of that name on the
   `dev` environment, never a repository secret. Never put it on a command
   line.
