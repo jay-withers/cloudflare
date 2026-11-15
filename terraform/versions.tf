@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.7"
+  required_version = ">= 1.9"
 
   # Partial: per-environment values live in backends/<env>.hcl.
   #   terraform init -backend-config=backends/dev.hcl

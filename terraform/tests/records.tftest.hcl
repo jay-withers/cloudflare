@@ -12,6 +12,7 @@ variables {
   zone_name                     = "example.com"
   container_apps_default_domain = "env-1234.northeurope.azurecontainerapps.io"
   custom_domain_verification_id = "ABC123"
+  backup_bucket_name            = "test-backups"
   app_domains                   = { app = "ca-app-dev" }
   resend_domains = {
     "@"   = { dkim = "p=APEX" }

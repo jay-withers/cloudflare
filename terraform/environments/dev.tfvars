@@ -1,5 +1,8 @@
 zone_name = "jaywithers.uk"
 
+# Encrypted off-Azure copies of the apps' documents (main.r2.tf).
+backup_bucket_name = "jw-app-backups"
+
 # cae-platform-dev's default domain and custom domain verification ID
 # (azure-container-apps). Copied rather than looked up: this root's identity
 # has no Azure access beyond its own state.

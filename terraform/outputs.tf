@@ -11,3 +11,11 @@ output "records" {
     content = r.content
   } }
 }
+
+output "backup_bucket" {
+  description = "The backup bucket's name and its EU S3 endpoint, for the apps' backup workflows."
+  value = {
+    name     = cloudflare_r2_bucket.backups.name
+    endpoint = "https://${local.account_id}.${local.backup_jurisdiction}.r2.cloudflarestorage.com"
+  }
+}

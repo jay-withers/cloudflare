@@ -3,8 +3,20 @@
 Terraform for the DNS records in the `jaywithers.uk` Cloudflare zone: every
 app's custom-domain CNAME and `asuid` TXT, and every Resend sending domain's
 records. Until this repo existed they were all made by hand in the dashboard.
+It also holds the R2 bucket for the apps' encrypted off-Azure backups.
 
-Records only. The zone's own settings stay manual in the dashboard.
+The zone's own settings stay manual in the dashboard.
+
+## Backup bucket
+
+`main.r2.tf` makes `jw-app-backups`, an R2 bucket in the EU jurisdiction.
+The apps' scheduled backups write age-encrypted copies of their documents
+to `daily/<repo>/` and `monthly/<repo>/`. R2 deletes them after 30 and 365
+days. That lifecycle is the only retention policy.
+
+Before the first apply, turn R2 on for the account in the dashboard (it asks
+for a payment method; this usage stays inside the free tier) and add
+**Account · Workers R2 Storage · Edit** to the token below.
 
 ## Adding a record
 
@@ -33,7 +45,8 @@ make inventory          # every record in the zone, as Cloudflare has it
 ```
 
 The token needs **Zone · DNS · Edit** and **Zone · Zone · Read** on
-`jaywithers.uk` only. CI uses the same kind of token from the
+`jaywithers.uk`, and **Account · Workers R2 Storage · Edit** for the backup
+bucket. CI uses the same kind of token from the
 `CLOUDFLARE_API_TOKEN` secret on this repo's `dev` environment. There is no
 `make apply`: applies go through cd-terraform.
 

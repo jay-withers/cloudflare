@@ -57,3 +57,35 @@ variable "records" {
   }))
   default = {}
 }
+
+variable "backup_bucket_name" {
+  description = "The R2 bucket the apps' encrypted off-Azure backups go to. The bucket has prevent_destroy, so changing this fails the plan."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$", var.backup_bucket_name))
+    error_message = "R2 bucket names are 3-63 lowercase letters, digits and hyphens, starting and ending with a letter or digit."
+  }
+}
+
+variable "backup_daily_retention_days" {
+  description = "Days a backup under `daily/` is kept before R2 deletes it."
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = var.backup_daily_retention_days >= 7 && floor(var.backup_daily_retention_days) == var.backup_daily_retention_days
+    error_message = "Keep at least a week of daily backups, in whole days."
+  }
+}
+
+variable "backup_monthly_retention_days" {
+  description = "Days a backup under `monthly/` is kept before R2 deletes it."
+  type        = number
+  default     = 365
+
+  validation {
+    condition     = var.backup_monthly_retention_days > var.backup_daily_retention_days && floor(var.backup_monthly_retention_days) == var.backup_monthly_retention_days
+    error_message = "Monthly backups must outlive the daily ones, in whole days."
+  }
+}
