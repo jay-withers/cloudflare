@@ -7,6 +7,24 @@ It also holds the R2 bucket for the apps' encrypted off-Azure backups.
 
 The zone's own settings stay manual in the dashboard.
 
+What it manages today (`terraform/environments/dev.tfvars`):
+
+- **App custom domains** on the shared Container Apps environment:
+  `career`, `finances`, `health` (gym-log), `marketagent`, `observability`
+  and `support`.
+- **Resend sending domains:** the apex, `career`, `finances`, `health` and
+  `send`.
+- **The `jw-app-backups` R2 bucket** (below).
+
+## First-time setup
+
+Tools come from mise ([toolchain](https://github.com/jay-withers/toolchain)
+sets a machine up once). Then:
+
+```bash
+make install            # mise install + pre-commit and commit-msg hooks
+```
+
 ## Backup bucket
 
 `main.r2.tf` makes `jw-app-backups`, an R2 bucket in the EU jurisdiction.
@@ -35,20 +53,51 @@ change; once it merges, cd-terraform opens a `terraform-pending` issue, and
   `resend._domainkey`, `send` and `rsend`.
 - **Anything else:** an entry in `records`, keyed `<TYPE> <name>`.
 
+**Adopting a record made in the dashboard:** add it to `dev.tfvars`, plus an
+`import` block in `terraform/imports.tf` whose id is `<zone id>/<record id>`
+(`make inventory` prints the record ID). Delete the block once it's applied;
+while it's there, `make test` fails, because the tests' variables don't
+produce the imported key.
+
 ## Running it locally
 
 ```bash
+make validate           # terraform init (no backend) + validate
+make test               # terraform test against a mocked provider, no credentials
+make lint               # every pre-commit hook (fmt, docs, tflint, checkov, layout)
+
 cp .env.example .env    # then paste a token into CLOUDFLARE_API_TOKEN
-az login                # the state backend is Azure storage
+az login                # the state backend is Azure storage (sttfsharedjw/cloudflare)
 make plan
 make inventory          # every record in the zone, as Cloudflare has it
 ```
+
+`make` with no target lists every target. The tests
+(`terraform/tests/`) check how `app_domains`, `resend_domains` and `records`
+expand into records, and the bucket's jurisdiction and retention.
 
 The token needs **Zone · DNS · Edit** and **Zone · Zone · Read** on
 `jaywithers.uk`, and **Account · Workers R2 Storage · Edit** for the backup
 bucket. CI uses the same kind of token from the
 `CLOUDFLARE_API_TOKEN` secret on this repo's `dev` environment. There is no
 `make apply`: applies go through cd-terraform.
+
+## CI/CD
+
+Each workflow is a thin caller of a shared one in
+[jay-withers/workflows](https://github.com/jay-withers/workflows):
+
+- **ci-pre-commit** and **ci-terraform** on PRs: every hook, then validate,
+  `terraform test` and a real plan of dev commented on the PR.
+- **ci-codeql** scans the workflows.
+- **cd-terraform** plans on merge and opens the `terraform-pending` issue;
+  running it from the Actions tab applies.
+- **cd-tag** tags a semver release on every merge to `main`.
+- **manual-terraform-unlock** releases a stuck state lock: run it by hand
+  with the lock ID from an "Error acquiring the state lock" message.
+
+The repo's settings, required checks, `dev` environment and state identity
+are managed by [github-repos](https://github.com/jay-withers/github-repos).
 
 ## Drift
 
