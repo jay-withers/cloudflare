@@ -10,7 +10,7 @@ The zone's own settings stay manual in the dashboard.
 What it manages today (`terraform/environments/dev.tfvars`):
 
 - **App custom domains** on the shared Container Apps environment:
-  `career`, `finances`, `health` (gym-log), `marketagent`, `observability`
+  `career`, `finances`, `health`, `marketagent`, `observability`
   and `support`.
 - **Resend sending domains:** the apex, `career`, `finances`, `health` and
   `send`.
