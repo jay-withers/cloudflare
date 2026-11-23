@@ -41,3 +41,17 @@ resend_domains = {
     return_path = "rsend.forge.rmta.net"
   }
 }
+
+# Anything the three inputs above don't generate.
+records = {
+  # Proves jaywithers.uk to Google: it is what makes the Cloud Identity
+  # directory behind the GCP organization (gcp-landingzone) ours, and it
+  # verifies the domain for Search Console, which Cloud Run domain mappings
+  # need. Removing it would eventually unverify both. Added in the dashboard
+  # on 2026-11-22 and adopted through locals.imports.tf.
+  "TXT @ google-site-verification" = {
+    type    = "TXT"
+    name    = "@"
+    content = "google-site-verification=Mh1m7tE1D4foWucsVZJfeRIzJmh9GdtbKjaDs6johys"
+  }
+}

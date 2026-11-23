@@ -2,7 +2,8 @@
 # Lists every DNS record in the zone as Cloudflare has it, one tab-separated
 # line each: id, type, name, content, ttl, proxied, priority, comment.
 # Compare it with terraform/environments/dev.tfvars to find a record made in
-# the dashboard and never brought in, or the record id an `import` block needs.
+# the dashboard and never brought in (adopt it through local.adopt in
+# terraform/locals.imports.tf, which looks the ID up itself).
 #
 # Reads CLOUDFLARE_API_TOKEN from .env (gitignored, see .env.example) unless
 # it is already in the environment. The token is sent only as a request

@@ -53,11 +53,11 @@ change; once it merges, cd-terraform opens a `terraform-pending` issue, and
   `resend._domainkey`, `send` and `rsend`.
 - **Anything else:** an entry in `records`, keyed `<TYPE> <name>`.
 
-**Adopting a record made in the dashboard:** add it to `dev.tfvars`, plus an
-`import` block in `terraform/imports.tf` whose id is `<zone id>/<record id>`
-(`make inventory` prints the record ID). Delete the block once it's applied;
-while it's there, `make test` fails, because the tests' variables don't
-produce the imported key.
+**Adopting a record made in the dashboard:** add it to `dev.tfvars`, and its
+key to `local.adopt` in `terraform/locals.imports.tf`. The pull request's
+plan looks the record's ID up by name, type and content and imports it,
+rather than creating a duplicate Cloudflare would refuse. Empty the list once
+it's applied.
 
 ## Running it locally
 
@@ -103,5 +103,7 @@ are managed by [github-repos](https://github.com/jay-withers/github-repos).
 
 `schedule-drift` plans nightly, so a record edited in the dashboard shows up
 as drift. Put it back by running cd-terraform, or bring the change into
-`dev.tfvars`. `make inventory` lists what's live, with each record's ID, which
-is also what an `import` block needs to adopt a record made in the dashboard.
+`dev.tfvars`. `make inventory` lists what's live, with each record's ID. A
+record made in the dashboard that isn't in `dev.tfvars` won't show as drift:
+compare the inventory with `dev.tfvars` to find one, then adopt it through
+`local.adopt` (above).
