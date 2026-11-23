@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-    uses: jay-withers/workflows/.github/workflows/terraform.yml@ed119fa2b4c554074ef189cc6d16696a41a833b6 # v1.31.2
+    uses: jay-withers/workflows/.github/workflows/terraform.yml@7e124ba6227a9efebd37b0fff487bad8a1d83975 # v1.31.5
     with:
       test-directories: '["terraform"]'
 
@@ -35,7 +35,7 @@ jobs:
       id-token: write
       contents: read
       pull-requests: write # the plan comment
-    uses: jay-withers/workflows/.github/workflows/terraform-deploy.yml@ed119fa2b4c554074ef189cc6d16696a41a833b6 # v1.31.2
+    uses: jay-withers/workflows/.github/workflows/terraform-deploy.yml@7e124ba6227a9efebd37b0fff487bad8a1d83975 # v1.31.5
     secrets: inherit
     with:
       environment: dev
