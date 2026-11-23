@@ -89,3 +89,9 @@ variable "backup_monthly_retention_days" {
     error_message = "Monthly backups must outlive the daily ones, in whole days."
   }
 }
+
+variable "adopt" {
+  description = "Keys of records (as in `records`, `<TYPE> <name>`) made in the dashboard and not yet in state, for the plan to import rather than create. Empty it once the apply has run."
+  type        = list(string)
+  default     = []
+}

@@ -26,6 +26,12 @@ variables {
 run "nothing_to_adopt_without_the_record" {
   command = plan
 
+  # A key to adopt that the configuration doesn't have: the filter must drop
+  # it, or local.records[k] fails and the mocked provider is asked to import.
+  variables {
+    adopt = ["TXT @ google-site-verification"]
+  }
+
   assert {
     condition     = length(local.adopt) == 0
     error_message = "A key in the adopt list that the configuration lacks must plan no import."

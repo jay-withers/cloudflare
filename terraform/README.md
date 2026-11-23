@@ -39,6 +39,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_adopt"></a> [adopt](#input\_adopt) | Keys of records (as in `records`, `<TYPE> <name>`) made in the dashboard and not yet in state, for the plan to import rather than create. Empty it once the apply has run. | `list(string)` | `[]` | no |
 | <a name="input_app_domains"></a> [app\_domains](#input\_app\_domains) | Custom domains for apps on the shared Container Apps environment, as<br/>subdomain => container app name. Each one gets a CNAME to the app and an<br/>asuid TXT record for Azure's ownership check, both DNS only: the managed<br/>certificate is validated against the CNAME, so proxying it fails<br/>validation. | `map(string)` | `{}` | no |
 | <a name="input_backup_bucket_name"></a> [backup\_bucket\_name](#input\_backup\_bucket\_name) | The R2 bucket the apps' encrypted off-Azure backups go to. The bucket has prevent\_destroy, so changing this fails the plan. | `string` | n/a | yes |
 | <a name="input_backup_daily_retention_days"></a> [backup\_daily\_retention\_days](#input\_backup\_daily\_retention\_days) | Days a backup under `daily/` is kept before R2 deletes it. | `number` | `30` | no |

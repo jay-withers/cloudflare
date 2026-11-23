@@ -54,7 +54,7 @@ change; once it merges, cd-terraform opens a `terraform-pending` issue, and
 - **Anything else:** an entry in `records`, keyed `<TYPE> <name>`.
 
 **Adopting a record made in the dashboard:** add it to `dev.tfvars`, and its
-key to `local.adopt` in `terraform/locals.imports.tf`. The pull request's
+key to `adopt` in the same file. The pull request's
 plan looks the record's ID up by name, type and content and imports it,
 rather than creating a duplicate Cloudflare would refuse. Empty the list once
 it's applied.
@@ -106,4 +106,4 @@ as drift. Put it back by running cd-terraform, or bring the change into
 `dev.tfvars`. `make inventory` lists what's live, with each record's ID. A
 record made in the dashboard that isn't in `dev.tfvars` won't show as drift:
 compare the inventory with `dev.tfvars` to find one, then adopt it through
-`local.adopt` (above).
+`adopt` (above).
