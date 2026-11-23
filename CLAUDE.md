@@ -31,11 +31,14 @@ Azure module, its example and its stg/prd environments are gone, and
 - The verification ID and default domain of `cae-platform-dev` are literals
   in `dev.tfvars`, not looked up: this repo's identity can reach its own
   state container and nothing else in Azure.
-- To adopt a record made in the dashboard, add it to `dev.tfvars` and an
-  `import` block in `imports.tf` (`make inventory` gives its ID; the id is
-  `<zone id>/<record id>`), then delete the block once applied. While one is
-  there, `terraform test` fails: the import targets a key the tests'
-  variables don't produce.
+- To adopt a record made in the dashboard, add it to `dev.tfvars` and its
+  key to `local.adopt` (`locals.imports.tf`). `imports.tf` looks its ID up
+  by name, type and content (`data.imports.tf`) in the PR's real plan, so no
+  record ID is copied and no local token is needed. The plan should show it
+  as an import, not a create (Cloudflare refuses an identical duplicate).
+  Empty the list once applied. `local.adopt` only keeps keys the
+  configuration has, so the tests, whose variables don't produce them, plan
+  no import.
 - **The backup bucket** (`main.r2.tf`) is in the `eu` jurisdiction, which
   can't change once it exists, on the account read off the zone
   (`local.account_id`), so there is no account ID literal. Its lifecycle
@@ -45,8 +48,9 @@ Azure module, its example and its stg/prd environments are gone, and
   jurisdiction fails the plan. Moving it means a new bucket, copying the
   objects across, and removing the old one from state by hand.
 - `terraform/tests/records.tftest.hcl` checks how the three inputs expand,
-  and `r2.tftest.hcl` the bucket's jurisdiction and retention, against a
-  mocked provider (`make test`, and the `terraform / Test` job).
+  `r2.tftest.hcl` the bucket's jurisdiction and retention, and
+  `adopt.tftest.hcl` that `local.adopt` drops keys the configuration lacks,
+  against a mocked provider (`make test`, and the `terraform / Test` job).
 - **File layout is enforced** by `scripts/check-tf-standards.sh`:
   `locals`/`variable`/`output`/`data` blocks in `locals.tf`/`variables.tf`/
   `outputs.tf`/`data.tf` (or `<kind>.<topic>.tf`), `terraform{}`/`provider{}`
