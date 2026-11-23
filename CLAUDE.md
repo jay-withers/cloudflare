@@ -32,11 +32,11 @@ Azure module, its example and its stg/prd environments are gone, and
   in `dev.tfvars`, not looked up: this repo's identity can reach its own
   state container and nothing else in Azure.
 - To adopt a record made in the dashboard, add it to `dev.tfvars` and its
-  key to `local.adopt` (`locals.imports.tf`). `imports.tf` looks its ID up
+  key to `adopt` there too. `imports.tf` looks its ID up
   by name, type and content (`data.imports.tf`) in the PR's real plan, so no
   record ID is copied and no local token is needed. The plan should show it
   as an import, not a create (Cloudflare refuses an identical duplicate).
-  Empty the list once applied. `local.adopt` only keeps keys the
+  Empty `adopt` once applied. `local.adopt` only keeps keys the
   configuration has, so the tests, whose variables don't produce them, plan
   no import.
 - **The backup bucket** (`main.r2.tf`) is in the `eu` jurisdiction, which

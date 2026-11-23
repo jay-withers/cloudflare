@@ -48,7 +48,7 @@ records = {
   # directory behind the GCP organization (gcp-landingzone) ours, and it
   # verifies the domain for Search Console, which Cloud Run domain mappings
   # need. Removing it would eventually unverify both. Added in the dashboard
-  # on 2026-11-22 and adopted through locals.imports.tf.
+  # on 2026-11-22 and adopted through locals.imports.tf (applied 2026-11-23).
   "TXT @ google-site-verification" = {
     type    = "TXT"
     name    = "@"

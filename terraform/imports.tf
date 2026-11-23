@@ -1,4 +1,4 @@
-# Adopts each record in local.adopt (locals.imports.tf) rather than creating
+# Adopts each record in local.adopt (var.adopt, filtered in locals.imports.tf) rather than creating
 # a duplicate, which Cloudflare would refuse. Only where the lookup finds
 # exactly one match: none means there is nothing to adopt (the plan shows a
 # create), and an entry left in the list after the apply finds the managed
